@@ -8,7 +8,7 @@ import requests
 # 1. إعدادات الصفحة
 st.set_page_config(page_title="المرصد الشامل لبيئة الأعمال", page_icon="📡", layout="wide")
 
-# 2. ضبط محاذاة الصفحة بالكامل لليمين (RTL)
+# 2. ضبط محاذاة الصفحة وتكثيف التنسيق لليمين (RTL)
 st.markdown("""
     <style>
     body, div, p, h1, h2, h3, h4, span, label, input {
@@ -22,11 +22,27 @@ st.markdown("""
         direction: rtl !important;
         text-align: right !important;
     }
+    .portal-card {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 12px;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# 3. مفتاح الذكاء الاصطناعي
-api_key = "AQ.Ab8RN6JO7Umu9mZsx05Ip_Se8UdqV8twMlvcVbKFVzgPTDu76w"
+# 3. إعدادات الشريط الجانبي وخانة مفتاح الذكاء الاصطناعي
+st.sidebar.title("⚙️ إعدادات النظام")
+user_api_key = st.sidebar.text_input(
+    "أدخل مفتاح Gemini API (اختياري):", 
+    type="password", 
+    help="إذا كان لديك مفتاح خاص بك يمكنك إدخاله هنا، وإلا سيعمل النظام بالمفتاح الافتراضي المدمج."
+)
+
+# استخدام مفتاح المستخدم إذا وُجد، أو الاعتماد على المفتاح الافتراضي المثبت
+DEFAULT_API_KEY = "AQ.Ab8RN6JO7Umu9mZsx05Ip_Se8UdqV8twMlvcVbKFVzgPTDu76w"
+api_key = user_api_key if user_api_key.strip() != "" else DEFAULT_API_KEY
 
 def ask_ai(prompt):
     """دالة اتصال بنموذج الذكاء الاصطناعي الحقيقي"""
@@ -87,31 +103,37 @@ with tab1:
     except Exception as e:
         st.error(f"تعذر جلب الأخبار الحية: {e}")
 
-# ----- التبويب 2: محرك الروابط المباشرة للبيانات المفتوحة -----
+# ----- التبويب 2: محرك الروابط الواضحة للبيانات المفتوحة -----
 with tab2:
     st.subheader("🏛️ دليل الوصول المباشر لحزم البيانات المفتوحة (open.gov.sa)")
     
     encoded_search = urllib.parse.quote(search_query)
     direct_gov_url = f"https://open.gov.sa/dataset?q={encoded_search}"
     
-    st.info(f"🔎 البحث الحالي مخصص لقطاع: **{search_query}**")
+    st.info(f"🔎 نتائج البحث والوصول السريع المخصص لقطاع: **{search_query}**")
     st.markdown(f"🔗 **[اضغط هنا للوصول المباشر لحزم البيانات المفتوحة الخاصة بـ ({search_query}) على منصة open.gov.sa]({direct_gov_url})**")
     
     st.write("---")
     st.write("**📌 الروابط المباشرة لأهم المنصات الوطنية للبيانات المفتوحة:**")
     
-    portal_data = [
-        {"الجهة / المنصة": "البوابة الوطنية للبيانات المفتوحة", "الوصف": "المحرك الموحد لكافة حزم البيانات الحكومية", "رابط الوصول المباشر": "https://open.gov.sa/"},
-        {"الجهة / المنصة": "الهيئة العامة للإحصاء (Gastat)", "الوصف": "مؤشرات التجارة الخارجية والاقتصاد والقوى العاملة", "رابط الوصول المباشر": "https://www.stats.gov.sa/ar/page/259"},
-        {"الجهة / المنصة": "وزارة التجارة - البيانات المفتوحة", "الوصف": "بيانات السجلات التجارية والشركات الأجنبية", "رابط الوصول المباشر": "https://mc.gov.sa/ar/eservices/open-data/Pages/default.aspx"},
-        {"الجهة / المنصة": "وزارة الاستثمار - استثمر في السعودية", "الوصف": "التقارير الاقتصادية والفرص الاستثمارية الأجنبية", "رابط الوصول المباشر": "https://investsaudi.sa/ar/"},
-        {"الجهة / المنصة": "الهيئة العامة للغذاء والدواء (SFDA)", "الوصف": "بيانات التراخيص والمنتجات والمنشآت المعتمدة", "رابط الوصول المباشر": "https://sfda.gov.sa/ar/open-data"},
-        {"الجهة / المنصة": "وزارة الصناعة والثروة المعدنية", "الوصف": "بيانات المصانع والتراخيص الصناعية والمناطق اللوجستية", "رابط الوصول المباشر": "https://mim.gov.sa/mim/opendata.html"},
-        {"الجهة / المنصة": "وزارة النقل والخدمات اللوجستية", "الوصف": "مؤشرات الأداء اللوجستي وحركة الشحن والموانئ", "رابط الوصول المباشر": "https://mot.gov.sa/ar/OpenData/Pages/default.aspx"}
+    portals = [
+        {"name": "البوابة الوطنية للبيانات المفتوحة", "desc": "المحرك الموحد لكافة حزم البيانات الحكومية", "url": "https://open.gov.sa/"},
+        {"name": "الهيئة العامة للإحصاء (Gastat)", "desc": "مؤشرات التجارة الخارجية والاقتصاد والقوى العاملة", "url": "https://www.stats.gov.sa/ar/page/259"},
+        {"name": "وزارة التجارة - البيانات المفتوحة", "desc": "بيانات السجلات التجارية والشركات الأجنبية والمؤسسات", "url": "https://mc.gov.sa/ar/eservices/open-data/Pages/default.aspx"},
+        {"name": "وزارة الاستثمار - استثمر في السعودية", "desc": "التقارير الاقتصادية والفرص الاستثمارية الأجنبية", "url": "https://investsaudi.sa/ar/"},
+        {"name": "الهيئة العامة للغذاء والدواء (SFDA)", "desc": "بيانات التراخيص والمنتجات والمنشآت المعتمدة", "url": "https://sfda.gov.sa/ar/open-data"},
+        {"name": "وزارة الصناعة والثروة المعدنية", "desc": "بيانات المصانع والتراخيص الصناعية والمناطق اللوجستية", "url": "https://mim.gov.sa/mim/opendata.html"},
+        {"name": "وزارة النقل والخدمات اللوجستية", "desc": "مؤشرات الأداء اللوجستي وحركة الشحن والموانئ", "url": "https://mot.gov.sa/ar/OpenData/Pages/default.aspx"}
     ]
     
-    df_portals = pd.DataFrame(portal_data)
-    st.dataframe(df_portals, use_container_width=True)
+    for portal in portals:
+        st.markdown(f"""
+        <div class="portal-card">
+            <h4 style="margin:0 0 5px 0;">🏛️ {portal['name']}</h4>
+            <p style="margin:0 0 10px 0; color:#555;">{portal['desc']}</p>
+            <a href="{portal['url']}" target="_blank" style="font-weight:bold; color:#0066cc;">🔗 اضغط هنا للانتقال المباشر للمنصة</a>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ----- التبويب 3: التحليل المالي بالذكاء الاصطناعي الحقيقي -----
 with tab3:
