@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
 import urllib.parse
-import urllib.request
 import json
 import xml.etree.ElementTree as ET
+import requests
 
 # 1. إعدادات الصفحة
 st.set_page_config(page_title="المرصد الشامل لبيئة الأعمال", page_icon="📡", layout="wide")
@@ -25,23 +25,29 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. تثبيت مفتاح الذكاء الاصطناعي
+# 3. مفتاح الذكاء الاصطناعي (يصلح للتنسيقين القديم والجديد)
 api_key = "AQ.Ab8RN6JO7Umu9mZsx05Ip_Se8UdqV8twMlvcVbKFVzgPTDu76w"
 
 def ask_ai(prompt):
-    """دالة الربط المباشر مع الذكاء الاصطناعي عبر API المعدلة"""
+    """دالة الربط المباشر مع الذكاء الاصطناعي تدعم جميع أنواع المفاتيح"""
     if not api_key:
-        return "⚠️ يرجى التأكد من مفتاح API."
+        return "⚠️ يرجى وضع المفتاح الخاص بك في السطر 27."
+    
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    headers = {'Content-Type': 'application/json'}
+    data = {"contents": [{"parts": [{"text": prompt}]}]}
+    
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-        headers = {'Content-Type': 'application/json'}
-        data = {"contents": [{"parts": [{"text": prompt}]}]}
-        req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
-        response = urllib.request.urlopen(req, timeout=12)
-        result = json.loads(response.read().decode('utf-8'))
-        return result['candidates'][0]['content']['parts'][0]['text']
+        response = requests.post(url, headers=headers, json=data, timeout=12)
+        res_json = response.json()
+        
+        if response.status_code == 200:
+            return res_json['candidates'][0]['content']['parts'][0]['text']
+        else:
+            error_msg = res_json.get('error', {}).get('message', 'خطأ غير معروف')
+            return f"❌ خطأ من الخدمة: {error_msg}"
     except Exception as e:
-        return f"خطأ في الاتصال بالذكاء الاصطناعي: {str(e)}"
+        return f"❌ تعذر الاتصال بالذكاء الاصطناعي: {str(e)}"
 
 # 4. واجهة المرصد الرئيسية
 st.title("📡 المرصد الشامل لمرئيات ومتغيرات بيئة الأعمال والقطاع الأجنبي")
@@ -64,9 +70,8 @@ with tab1:
     rss_url = f"https://news.google.com/rss/search?q={encoded_query}&hl=ar&gl=SA&ceid=SA:ar"
     
     try:
-        req = urllib.request.Request(rss_url, headers={'User-Agent': 'Mozilla/5.0'})
-        html = urllib.request.urlopen(req, timeout=5).read()
-        root = ET.fromstring(html)
+        res = requests.get(rss_url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=5)
+        root = ET.fromstring(res.text)
         items = root.findall('.//item')
         if items:
             st.success(f"✅ تم سحب {len(items[:8])} خبراً حياً ومباشراً من المصادر:")
@@ -87,9 +92,8 @@ with tab2:
     st.subheader("🏛️ نتائج الحزم التفاعلية المباشرة من (open.gov.sa)")
     gov_api = f"https://open.gov.sa/api/3/action/package_search?q={urllib.parse.quote(search_query)}&rows=10"
     try:
-        req = urllib.request.Request(gov_api, headers={'User-Agent': 'Mozilla/5.0'})
-        res = urllib.request.urlopen(req, timeout=6).read()
-        data = json.loads(res.decode('utf-8'))
+        res = requests.get(gov_api, headers={'User-Agent': 'Mozilla/5.0'}, timeout=6)
+        data = res.json()
         results = data.get('result', {}).get('results', [])
         
         if results:
