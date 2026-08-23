@@ -25,19 +25,19 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. تثبيت مفتاح الذكاء الاصطناعي برمجياً (ضع مفتاح Gemini الخاص بك هنا)
-api_key = "AQ.Ab8RN6JO7Umu9mZsx05lp_Se8UdqV8twMlvcVbKFVzgPTDu76w"
+# 3. تثبيت مفتاح الذكاء الاصطناعي
+api_key = "AQ.Ab8RN6JO7Umu9mZsx05Ip_Se8UdqV8twMlvcVbKFVzgPTDu76w"
 
 def ask_ai(prompt):
-    """دالة الربط المباشر مع الذكاء الاصطناعي عبر API"""
-    if not api_key or api_key == "YOUR_GEMINI_API_KEY":
-        return "⚠️ يرجى وضع مفتاح Gemini API في السطر 20 لتفعيل تحليلات الذكاء الاصطناعي المباشرة."
+    """دالة الربط المباشر مع الذكاء الاصطناعي عبر API المعدلة"""
+    if not api_key:
+        return "⚠️ يرجى التأكد من مفتاح API."
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
         headers = {'Content-Type': 'application/json'}
         data = {"contents": [{"parts": [{"text": prompt}]}]}
         req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
-        response = urllib.request.urlopen(req, timeout=10)
+        response = urllib.request.urlopen(req, timeout=12)
         result = json.loads(response.read().decode('utf-8'))
         return result['candidates'][0]['content']['parts'][0]['text']
     except Exception as e:
@@ -51,10 +51,10 @@ search_query = st.text_input("🔍 اكتب القطاع أو التحدي لل�
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "📰 مرصد الإعلام المباشر", 
-    "🏛️ البيانات المفتوحة  (open.gov.sa)", 
+    "🏛️ البيانات المفتوحة الحية (open.gov.sa)", 
     "📊 تحليل الإفصاحات بالذكاء الاصطناعي", 
     "💬 استطلاع اللوائح والأنظمة", 
-    "💡  التحديات المحتملة"
+    "💡 التحديات المحتملة"
 ])
 
 # ----- التبويب 1: رادار الأخبار الحية -----
@@ -69,7 +69,7 @@ with tab1:
         root = ET.fromstring(html)
         items = root.findall('.//item')
         if items:
-            st.success(f"✅ أخبار مباشرة  {len(items[:8])} :")
+            st.success(f"✅ تم سحب {len(items[:8])} خبراً حياً ومباشراً من المصادر:")
             for item in items[:8]:
                 title = item.find('title').text if item.find('title') is not None else "بدون عنوان"
                 link = item.find('link').text if item.find('link') is not None else "#"
