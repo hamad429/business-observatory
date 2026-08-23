@@ -4,7 +4,10 @@ import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 
-st.set_page_config# محاذاة جميع النصوص والجداول للجهة اليمنى (RTL)
+# 1. إعدادات الصفحة الرئيسية
+st.set_page_config(page_title="المرصد الشامل لبيئة الأعمال", page_icon="📡", layout="wide")
+
+# 2. محاذاة جميع النصوص والجداول للجهة اليمنى (RTL)
 st.markdown("""
     <style>
     /* محاذاة الصفحة كاملة للجهة اليمنى */
@@ -23,7 +26,6 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-(page_title="المرصد الشامل لبيئة الأعمال", page_icon="📡", layout="wide")
 
 st.title("📡 المرصد الشامل لمرئيات ومتغيرات بيئة الأعمال والقطاع الأجنبي")
 st.write("رادار متكامل يرصد التحديات الميدانية والفرص الاستثمارية للقطاع الخاص الأجنبي في المملكة.")
@@ -34,8 +36,8 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "📰 مرصد الاعلام", 
     "🏛️ البيانات المفتوحة (open.gov.sa)", 
     "📊 القوائم الإفصاحية والمالية", 
-    "💬  منصة استطلاع ومنصات التواصل الاجتماعي", 
-    "💡  تحديات محتملة "
+    "💬 منصة استطلاع ومنصات التواصل الاجتماعي", 
+    "💡 تحديات محتملة"
 ])
 
 with tab1:
@@ -50,7 +52,7 @@ with tab1:
         root = ET.fromstring(html)
         items = root.findall('.//item')
         if items:
-            st.success(f"✅ تم رصد {len(items[:8])} خبراً حقيقياً مباشراً:")
+            st.success(f"✅ تم رصد {len(items[:8])} خبر مباشر:")
             for item in items[:8]:
                 title = item.find('title').text if item.find('title') is not None else "خبر بدون عنوان"
                 link = item.find('link').text if item.find('link') is not None else "#"
