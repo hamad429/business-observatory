@@ -26,7 +26,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # 3. تثبيت مفتاح الذكاء الاصطناعي برمجياً (ضع مفتاح Gemini الخاص بك هنا)
-api_key = "YOUR_GEMINI_API_KEY"
+api_key = "AQ.Ab8RN6JO7Umu9mZsx05lp_Se8UdqV8twMlvcVbKFVzgPTDu76w"
 
 def ask_ai(prompt):
     """دالة الربط المباشر مع الذكاء الاصطناعي عبر API"""
