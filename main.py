@@ -69,7 +69,7 @@ with tab1:
         root = ET.fromstring(html)
         items = root.findall('.//item')
         if items:
-            st.success(f"✅ تم سحب {len(items[:8])} خبراً حياً ومباشراً من المصادر:")
+            st.success(f"✅ أخبار مباشرة  {len(items[:8])} :")
             for item in items[:8]:
                 title = item.find('title').text if item.find('title') is not None else "بدون عنوان"
                 link = item.find('link').text if item.find('link') is not None else "#"
