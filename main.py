@@ -52,7 +52,7 @@ def ask_ai(prompt):
 st.title("📡 المرصد الشامل لمرئيات ومتغيرات بيئة الأعمال والقطاع الأجنبي")
 st.write("رادار مباشر يرصد التحديات الميدانية والقرارات والبيانات المفتوحة للقطاع الخاص الأجنبي في المملكة.")
 
-search_query = st.text_input("🔍 اكتب القطاع أو التحدي للتفتيش والتحليل الحقيقي:", value="الإحصاء")
+search_query = st.text_input("🔍 اكتب القطاع أو التحدي للتفتيش والتحليل الحقيقي:", value="الخدمات اللوجستية")
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "📰 مرصد الإعلام المباشر", 
@@ -87,44 +87,32 @@ with tab1:
     except Exception as e:
         st.error(f"تعذر جلب الأخبار الحية: {e}")
 
-# ----- التبويب 2: ربط حي ومحدث مع بوابة البيانات المفتوحة السعودية -----
+# ----- التبويب 2: محرك الروابط المباشرة للبيانات المفتوحة -----
 with tab2:
-    st.subheader("🏛️ نتائج الحزم التفاعلية المباشرة من (open.gov.sa)")
+    st.subheader("🏛️ دليل الوصول المباشر لحزم البيانات المفتوحة (open.gov.sa)")
     
-    # استخدام محرك البحث المباشر للبيانات المفتوحة عبر بروتوكول آمن
-    encoded_gov_query = urllib.parse.quote(search_query)
-    gov_url = f"https://open.gov.sa/api/3/action/package_search?q={encoded_gov_query}&rows=15"
+    encoded_search = urllib.parse.quote(search_query)
+    direct_gov_url = f"https://open.gov.sa/dataset?q={encoded_search}"
     
-    try:
-        browser_headers = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'application/json'
-        }
-        res = requests.get(gov_url, headers=browser_headers, timeout=10)
-        
-        if res.status_code == 200:
-            data = res.json()
-            results = data.get('result', {}).get('results', [])
-            
-            if results:
-                st.success(f"✅ تم العثور على {len(results)} حزمة بيانات مفتوحة حقيقية من البوابة الوطنية:")
-                clean_data = []
-                for r in results:
-                    org = r.get('organization', {})
-                    org_title = org.get('title') if org else "جهة حكومية"
-                    clean_data.append({
-                        "عنوان حزمة البيانات المفتوحة": r.get('title'),
-                        "الجهة الحكومية المصدرة": org_title,
-                        "عدد الموارد والملفات": r.get('num_resources', 0),
-                        "رابط الوصول المباشر": f"https://open.gov.sa/dataset/{r.get('name')}"
-                    })
-                st.dataframe(pd.DataFrame(clean_data), use_container_width=True)
-            else:
-                st.info(f"لم يتم العثور على حزم بيانات مفتوحة مسجلة برمز '{search_query}' حالياً. جرب البحث بكلمات مثل: 'تجارة'، 'صناعة'، 'استثمار'، 'ترخيص'.")
-        else:
-            st.warning("البوابة الوطنية للبيانات المفتوحة تجري صيانة مؤقتة على بروتوكول API الخاص بها، يمكنك إعادة التحديث بعد قليل.")
-    except Exception as e:
-        st.error(f"تأخر في استجابة البوابة الوطنية للبيانات المفتوحة: {e}")
+    st.info(f"🔎 البحث الحالي مخصص لقطاع: **{search_query}**")
+    st.markdown(f"🔗 **[اضغط هنا للوصول المباشر لحزم البيانات المفتوحة الخاصة بـ ({search_query}) على منصة open.gov.sa]({direct_gov_url})**")
+    
+    st.write("---")
+    st.write("**📌 الروابط المباشرة لأهم المنصات الوطنية للبيانات المفتوحة:**")
+    
+    # جدول الروابط المباشرة الموثوقة
+    portal_data = [
+        {"الجهة / المنصة": "البوابة الوطنية للبيانات المفتوحة", "الوصف": "المحرك الموحد لكافة حزم البيانات الحكومية", "رابط الوصول المباشر": "https://open.gov.sa/"},
+        {"الجهة العامة للإحصاء (Gastat)", "الوصف": "مؤشرات التجارة الخارجية، الاقتصاد، والقوى العاملة", "رابط الوصول المباشر": "https://www.stats.gov.sa/ar/page/259"},
+        {"وزارة التجارة - البيانات المفتوحة", "الوصف": "بيانات السجلات التجارية، الشركات الأجنبية والمؤسسات", "رابط الوصول المباشر": "https://mc.gov.sa/ar/eservices/open-data/Pages/default.aspx"},
+        {"وزارة الاستثمار - استثمر في السعودية", "الوصف": "التقارير الاقتصادية والفرص الاستثمارية الأجنبية", "رابط الوصول المباشر": "https://investsaudi.sa/ar/"},
+        {"الهيئة العامة للغذة والدواء (SFDA)", "الوصف": "بيانات التراخيص والمنتجات والمنشآت المعتمدة", "رابط الوصول المباشر": "https://sfda.gov.sa/ar/open-data"},
+        {"وزارة الصناعة والثروة المعدنية", "الوصف": "بيانات المصانع، التراخيص الصناعية والمناطق اللوجستية", "رابط الوصول المباشر": "https://mim.gov.sa/mim/opendata.html"},
+        {"وزارة النقل والخدمات اللوجستية", "الوصف": "مؤشرات الأداء اللوجستي، حركة الشحن والموانئ", "رابط الوصول المباشر": "https://mot.gov.sa/ar/OpenData/Pages/default.aspx"}
+    ]
+    
+    df_portals = pd.DataFrame(portal_data)
+    st.dataframe(df_portals, use_container_width=True)
 
 # ----- التبويب 3: التحليل المالي بالذكاء الاصطناعي الحقيقي -----
 with tab3:
