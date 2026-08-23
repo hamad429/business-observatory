@@ -4,7 +4,26 @@ import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 
-st.set_page_config(page_title="المرصد الشامل لبيئة الأعمال", page_icon="📡", layout="wide")
+st.set_page_config# محاذاة جميع النصوص والجداول للجهة اليمنى (RTL)
+st.markdown("""
+    <style>
+    /* محاذاة الصفحة كاملة للجهة اليمنى */
+    body, div, p, h1, h2, h3, h4, span, label {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+    /* تعديل محاذاة جداول البيانات */
+    .stDataFrame {
+        direction: rtl !important;
+    }
+    /* تعديل الاتجاه في شريط البحث والمدخلات */
+    .stTextInput input {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+(page_title="المرصد الشامل لبيئة الأعمال", page_icon="📡", layout="wide")
 
 st.title("📡 المرصد الشامل لمرئيات ومتغيرات بيئة الأعمال والقطاع الأجنبي")
 st.write("رادار متكامل يرصد التحديات الميدانية والفرص الاستثمارية للقطاع الخاص الأجنبي في المملكة.")
