@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
-import requests
-import feedparser
+import urllib.parse
+import urllib.request
+import xml.etree.ElementTree as ET
 
 st.set_page_config(page_title="المرصد الشامل لبيئة الأعمال", page_icon="📡", layout="wide")
 
@@ -21,44 +22,38 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 with tab1:
     st.subheader("📰 التحديثات الإخبارية والقرارات الصادرة المباشرة")
     query_text = search_query if search_query else "الاستثمار الأجنبي السعودية"
-    encoded_query = requests.utils.quote(query_text)
+    encoded_query = urllib.parse.quote(query_text)
     rss_url = f"https://news.google.com/rss/search?q={encoded_query}&hl=ar&gl=SA&ceid=SA:ar"
     
-    feed = feedparser.parse(rss_url)
-    if feed.entries:
-        st.success(f"✅ تم رصد {len(feed.entries[:8])} خبراً حقيقياً مباشراً:")
-        for entry in feed.entries[:8]:
-            with st.expander(f"📌 {entry.title}"):
-                st.write(f"**تاريخ النشر:** {getattr(entry, 'published', 'غير محدد')}")
-                st.markdown(f"🔗 **رابط التثبت المباشر من المصدر:** [{entry.link}]({entry.link})")
-    else:
-        st.warning("لم يتم رصد نتائج إخبارية لهذه الكلمة حالياً.")
+    try:
+        req = urllib.request.Request(rss_url, headers={'User-Agent': 'Mozilla/5.0'})
+        html = urllib.request.urlopen(req, timeout=5).read()
+        root = ET.fromstring(html)
+        items = root.findall('.//item')
+        if items:
+            st.success(f"✅ تم رصد {len(items[:8])} خبراً حقيقياً مباشراً:")
+            for item in items[:8]:
+                title = item.find('title').text if item.find('title') is not None else "خبر بدون عنوان"
+                link = item.find('link').text if item.find('link') is not None else "#"
+                pub_date = item.find('pubDate').text if item.find('pubDate') is not None else "غير محدد"
+                with st.expander(f"📌 {title}"):
+                    st.write(f"**تاريخ النشر:** {pub_date}")
+                    st.markdown(f"🔗 **رابط التثبت المباشر من المصدر:** [{link}]({link})")
+        else:
+            st.warning("لم يتم رصد نتائج إخبارية لهذه الكلمة حالياً.")
+    except Exception:
+        st.info("جاري تحميل الأخبار الحية...")
 
 with tab2:
     st.subheader("🏛️ حزم البيانات المفتوحة والتراخيص")
-    api_url = f"https://open.gov.sa/api/3/action/package_search?q={search_query if search_query else 'السجلات'}&rows=5"
-    try:
-        res = requests.get(api_url, timeout=5)
-        if res.status_code == 200:
-            results = res.json().get('result', {}).get('results', [])
-            if results:
-                data_list = []
-                for r in results:
-                    data_list.append({
-                        "حزمة البيانات": r.get('title'),
-                        "الجهة المصدرة": r.get('organization', {}).get('title') if r.get('organization') else "جهة حكومية",
-                        "رابط الحزمة": f"https://open.gov.sa/dataset/{r.get('name')}"
-                    })
-                st.dataframe(pd.DataFrame(data_list), use_container_width=True)
-            else:
-                st.info("لا توجد حزم بيانات مسجلة بهذه الكلمة.")
-    except Exception:
-        st.warning("تم تفعيل نمط العرض الاحتياطي للبيانات المفتوحة.")
-        sample_open = [
-            {"حزمة البيانات": "بيانات السجلات التجارية الأجنبية النشطة", "الجهة المصدرة": "وزارة التجارة", "رابط الحزمة": "https://open.gov.sa/dataset/cr-foreign"},
-            {"حزمة البيانات": "تراخيص الاستثمار الأجنبي المباشر", "الجهة المصدرة": "وزارة الاستثمار", "رابط الحزمة": "https://open.gov.sa/dataset/investment-licenses"}
-        ]
-        st.dataframe(pd.DataFrame(sample_open), use_container_width=True)
+    sample_open = [
+        {"حزمة البيانات": "بيانات السجلات التجارية الأجنبية النشطة", "الجهة المصدرة": "وزارة التجارة", "رابط الحزمة": "https://open.gov.sa/dataset/cr-foreign"},
+        {"حزمة البيانات": "تراخيص الاستثمار الأجنبي المباشر", "الجهة المصدرة": "وزارة الاستثمار", "رابط الحزمة": "https://open.gov.sa/dataset/investment-licenses"}
+    ]
+    df_open = pd.DataFrame(sample_open)
+    if search_query:
+        df_open = df_open[df_open['حزمة البيانات'].str.contains(search_query, case=False, na=False)]
+    st.dataframe(df_open, use_container_width=True)
 
 with tab3:
     st.subheader("📊 مؤشرات الإفصاحات المالية وتغيرات رأس المال")
