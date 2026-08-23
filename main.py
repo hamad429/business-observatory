@@ -2,24 +2,22 @@ import streamlit as st
 import pandas as pd
 import urllib.parse
 import urllib.request
+import json
 import xml.etree.ElementTree as ET
 
-# 1. إعدادات الصفحة الرئيسية
+# 1. إعدادات الصفحة
 st.set_page_config(page_title="المرصد الشامل لبيئة الأعمال", page_icon="📡", layout="wide")
 
-# 2. محاذاة جميع النصوص والجداول للجهة اليمنى (RTL)
+# 2. ضبط محاذاة الصفحة بالكامل لليمين (RTL)
 st.markdown("""
     <style>
-    /* محاذاة الصفحة كاملة للجهة اليمنى */
-    body, div, p, h1, h2, h3, h4, span, label {
+    body, div, p, h1, h2, h3, h4, span, label, input {
         direction: rtl !important;
         text-align: right !important;
     }
-    /* تعديل محاذاة جداول البيانات */
     .stDataFrame {
         direction: rtl !important;
     }
-    /* تعديل الاتجاه في شريط البحث والمدخلات */
     .stTextInput input {
         direction: rtl !important;
         text-align: right !important;
@@ -27,23 +25,43 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("📡 المرصد الشامل لمرئيات ومتغيرات بيئة الأعمال والقطاع الأجنبي")
-st.write("رادار متكامل يرصد التحديات الميدانية والفرص الاستثمارية للقطاع الخاص الأجنبي في المملكة.")
+# 3. الشريط الجانبي لتفعيل الذكاء الاصطناعي
+st.sidebar.title("⚙️ إعدادات الذكاء الاصطناعي")
+api_key = st.sidebar.text_input("أدخل مفتاح Gemini API للتحليل المتقدم (اختياري):", type="password")
 
-search_query = st.text_input("🔍 شريط البحث والتفتيش التفاعلي (اكتب القطاع، الخبر، أو التحدي):", placeholder="مثال: الاستثمار، اللوجستي، الصحة، التعدين...")
+def ask_ai(prompt):
+    """دالة الربط المباشر مع الذكاء الاصطناعي عبر API"""
+    if not api_key:
+        return None
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}"
+        headers = {'Content-Type': 'application/json'}
+        data = {"contents": [{"parts": [{"text": prompt}]}]}
+        req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
+        response = urllib.request.urlopen(req, timeout=10)
+        result = json.loads(response.read().decode('utf-8'))
+        return result['candidates'][0]['content']['parts'][0]['text']
+    except Exception as e:
+        return f"خطأ في الاتصال بالذكاء الاصطناعي: {str(e)}"
+
+# 4. واجهة المستثمر الرئيسية
+st.title("📡 المرصد الشامل لمرئيات ومتغيرات بيئة الأعمال والقطاع الأجنبي")
+st.write("رادار مباشر يرصد التحديات الميدانية والقرارات والبيانات المفتوحة للقطاع الخاص الأجنبي في المملكة.")
+
+search_query = st.text_input("🔍 اكتب القطاع أو التحدي للتفتيش والتحليل الحقيقي:", value="الخدمات اللوجستية")
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "📰 مرصد الاعلام", 
-    "🏛️ البيانات المفتوحة (open.gov.sa)", 
-    "📊 القوائم الإفصاحية والمالية", 
-    "💬 منصة استطلاع ومنصات التواصل الاجتماعي", 
-    "💡 تحديات محتملة"
+    "📰 مرصد الإعلام المباشر", 
+    "🏛️ البيانات المفتوحة الحية (open.gov.sa)", 
+    "📊 تحليل الإفصاحات بالذكاء الاصطناعي", 
+    "💬 مرئيات اللوائح والأنظمة", 
+    "💡 مصفوفة التحديات والمحفزات الاستباقية"
 ])
 
+# ----- التبويب 1: رادار الأخبار الحية -----
 with tab1:
-    st.subheader("📰 التحديثات الإخبارية والقرارات الصادرة المباشرة")
-    query_text = search_query if search_query else "الاستثمار الأجنبي السعودية"
-    encoded_query = urllib.parse.quote(query_text)
+    st.subheader("📰 أحدث الأخبار والقرارات الرسمية الحية")
+    encoded_query = urllib.parse.quote(f"{search_query} السعودية استثمار")
     rss_url = f"https://news.google.com/rss/search?q={encoded_query}&hl=ar&gl=SA&ceid=SA:ar"
     
     try:
@@ -52,59 +70,75 @@ with tab1:
         root = ET.fromstring(html)
         items = root.findall('.//item')
         if items:
-            st.success(f"✅ تم رصد {len(items[:8])} خبر مباشر:")
+            st.success(f"✅ تم سحب {len(items[:8])} خبراً حياً ومباشراً من المصادر:")
             for item in items[:8]:
-                title = item.find('title').text if item.find('title') is not None else "خبر بدون عنوان"
+                title = item.find('title').text if item.find('title') is not None else "بدون عنوان"
                 link = item.find('link').text if item.find('link') is not None else "#"
                 pub_date = item.find('pubDate').text if item.find('pubDate') is not None else "غير محدد"
                 with st.expander(f"📌 {title}"):
                     st.write(f"**تاريخ النشر:** {pub_date}")
-                    st.markdown(f"🔗 **رابط التثبت المباشر من المصدر:** [{link}]({link})")
+                    st.markdown(f"🔗 **رابط الخبر المباشر:** [{link}]({link})")
         else:
-            st.warning("لم يتم رصد نتائج إخبارية لهذه الكلمة حالياً.")
-    except Exception:
-        st.info("جاري تحميل الأخبار الحية...")
+            st.warning("لا توجد أخبار حديثة مسجلة بكلمة البحث الحالية.")
+    except Exception as e:
+        st.error(f"تعذر جلب الأخبار الحية: {e}")
 
+# ----- التبويب 2: ربط حي مع بوابة البيانات المفتوحة السعودية -----
 with tab2:
-    st.subheader("🏛️ حزم البيانات المفتوحة والتراخيص")
-    sample_open = [
-        {"حزمة البيانات": "بيانات السجلات التجارية الأجنبية النشطة", "الجهة المصدرة": "وزارة التجارة", "رابط الحزمة": "https://open.gov.sa/dataset/cr-foreign"},
-        {"حزمة البيانات": "تراخيص الاستثمار الأجنبي المباشر", "الجهة المصدرة": "وزارة الاستثمار", "رابط الحزمة": "https://open.gov.sa/dataset/investment-licenses"}
-    ]
-    df_open = pd.DataFrame(sample_open)
-    if search_query:
-        df_open = df_open[df_open['حزمة البيانات'].str.contains(search_query, case=False, na=False)]
-    st.dataframe(df_open, use_container_width=True)
+    st.subheader("🏛️ نتائج الحزم التفاعلية المباشرة من (open.gov.sa)")
+    gov_api = f"https://open.gov.sa/api/3/action/package_search?q={urllib.parse.quote(search_query)}&rows=10"
+    try:
+        req = urllib.request.Request(gov_api, headers={'User-Agent': 'Mozilla/5.0'})
+        res = urllib.request.urlopen(req, timeout=6).read()
+        data = json.loads(res.decode('utf-8'))
+        results = data.get('result', {}).get('results', [])
+        
+        if results:
+            clean_data = []
+            for r in results:
+                org = r.get('organization', {})
+                org_title = org.get('title') if org else "جهة حكومية"
+                clean_data.append({
+                    "عنوان حزمة البيانات المفتوحة": r.get('title'),
+                    "الجهة الحكومية المصدرة": org_title,
+                    "عدد الموارد والملفات": r.get('num_resources', 0),
+                    "رابط الوصول المباشر": f"https://open.gov.sa/dataset/{r.get('name')}"
+                })
+            st.dataframe(pd.DataFrame(clean_data), use_container_width=True)
+        else:
+            st.info("لم يتم العثور على حزم بيانات مفتوحة مرتبطة مباشرة بهذه الكلمة حالياً في البوابة الوطنية.")
+    except Exception:
+        st.warning("تعذر الاتصال المباشر برابط API المنصة الوطنية للبيانات المفتوحة حالياً.")
 
+# ----- التبويب 3: التحليل المالي والإفصاحات بالذكاء الاصطناعي -----
 with tab3:
-    st.subheader("📊 مؤشرات الإفصاحات المالية وتغيرات رأس المال")
-    financial_data = [
-        {"الشركة / القطاع الأجنبي": "شركة الخدمات اللوجستية العالمية", "نوع الإفصاح": "إعادة هيكلة وتخفيض ميزانية", "المؤشر المالي": "تراجع الهامش التشغيلي بـ 4%", "مستوى التنبيه": "مرتفع الخطورة"},
-        {"الشركة / القطاع الأجنبي": "مجموعة التقنية والحلول السحابية", "نوع الإفصاح": "زيادة رأس المال والامتثال", "المؤشر المالي": "نمو الإيرادات المحلية بـ 12%", "مستوى التنبيه": "منخفض"}
-    ]
-    df_fin = pd.DataFrame(financial_data)
-    if search_query:
-        df_fin = df_fin[df_fin['الشركة / القطاع الأجنبي'].str.contains(search_query, case=False, na=False)]
-    st.dataframe(df_fin, use_container_width=True)
+    st.subheader("📊 تحليل الإفصاحات والاتجاهات المالية للقطاع")
+    if api_key:
+        with st.spinner("جاري تحليل الاتجاهات المالية باستخدام الذكاء الاصطناعي..."):
+            prompt = f"قم بتقديم تحليل مالي استباقي وموجز لقطاع '{search_query}' في السعودية للشركات الأجنبية، وذكر أهم 3 مخاطر مالية وتأثيرها على رأس المال بناءً على تحركات السوق الحالية."
+            ai_res = ask_ai(prompt)
+            st.markdown(ai_res)
+    else:
+        st.info("💡 أدخل مفتاح Gemini API في الشريط الجانبي لتفعيل التحليل المالي المباشر عبر الذكاء الاصطناعي.")
 
+# ----- التبويب 4: مرئيات منصة استطلع والأنظمة -----
 with tab4:
-    st.subheader("💬 مرئيات منصة 'استطلع' ونبض الشبكات المهنية (LinkedIn)")
-    social_data = [
-        {"المنصة": "استطلع (NCC)", "مشروع اللائحة": "مشروع تعديل ضوابط التخليص الجمركي", "مرئيات المستثمرين الأجانب": "اعتراض على ارتفاع رسوم التخزين والتأخير", "الحالة": "تحت الدراسة"},
-        {"المنصة": "شبكات مهنية (LinkedIn)", "مشروع اللائحة": "نقاشات توطين الوظائف الهندسية", "مرئيات المستثمرين الأجانب": "مطالبة بمهلة إضافية لاستقطاب الكفاءات", "الحالة": "رصد استباقي"}
-    ]
-    df_soc = pd.DataFrame(social_data)
-    if search_query:
-        df_soc = df_soc[df_soc['مشروع اللائحة'].str.contains(search_query, case=False, na=False)]
-    st.dataframe(df_soc, use_container_width=True)
+    st.subheader("💬 تحليلات التشريعات ومرئيات المستثمرين الأجانب")
+    if api_key:
+        with st.spinner("جاري استقراء مرئيات المستثمرين واللوائح..."):
+            prompt = f"بصفتك خبيراً تنظيماً، استقرئ التحديات التنظيمية واللوائح الحكومية المرتقبة في السعودية المتعلقة بقطاع '{search_query}' والآراء المتوقعة للمستثمرين الأجانب."
+            ai_res = ask_ai(prompt)
+            st.markdown(ai_res)
+    else:
+        st.info("💡 أدخل مفتاح Gemini API في الشريط الجانبي للربط التحليلي المباشر مع منصات الاستطلاع والتنظيمات.")
 
+# ----- التبويب 5: مصفوفة التحديات والمحفزات المباشرة -----
 with tab5:
-    st.subheader("💡 تحليل التحديات ومطابقة المحفزات الحكومية")
-    matrix_data = [
-        {"القطاع": "الخدمات اللوجستية", "التحدي المرصود": "تعدد جهات التراخيص وتأخر الفسح", "مستوى الخطورة": "مرتفع الخطورة", "المحفز الحكومي المتاح": "تفعيل مسار 'الفسح خلال 24 ساعة' بالزكاة والجمارك", "التوصية الاستباقية": "ربط رخصة النقل بالفسح الموحد"},
-        {"القطاع": "التقنية والبيانات", "التحدي المرصود": "اشتراطات استضافة البيانات السحابية", "مستوى الخطورة": "متوسط الخطورة", "المحفز الحكومي المتاح": "برامج دعم السحابة المعتمدة من سدايا", "التوصية الاستباقية": "تقديم فترة سماح إجرائية لمدة 6 أشهر"}
-    ]
-    df_mat = pd.DataFrame(matrix_data)
-    if search_query:
-        df_mat = df_mat[df_mat['القطاع'].str.contains(search_query, case=False, na=False)]
-    st.dataframe(df_mat, use_container_width=True)
+    st.subheader("💡 مصفوفة التحديات الميدانية والمحفزات الحكومية المقابلة")
+    if api_key:
+        with st.spinner("جاري بناء مصفوفة الحلول والمحفزات..."):
+            prompt = f"قم بصياغة جدول يحتوي على: (التحدي الميداني، مستوى الخطورة، المحفز الحكومي المتاح في السعودية، والتوصية الاستباقية) للقطاع التالي: {search_query}"
+            ai_res = ask_ai(prompt)
+            st.markdown(ai_res)
+    else:
+        st.info("💡 أدخل مفتاح Gemini API في الشريط الجانبي لتوليد مصفوفة المخاطر والمحفزات الحكومية حياً.")
