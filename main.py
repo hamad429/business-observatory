@@ -168,7 +168,7 @@ with tab2:
         {"name": "وزارة المالية - البيانات المفتوحة", "desc": "تقارير الميزانية العامة، الأداء المالي والقطاعات المالية الوطنية", "url": "https://www.mof.gov.sa/opendata/Pages/default.aspx"},
         {"name": "وزارة البيئة والمياه والزراعة", "desc": "بيانات الإنتاج الزراعي، الحيازات، التصاريف البيئية والمشاريع المائية", "url": "https://mewa.gov.sa/ar/InformationCenter/ResearchsAndStudies/Pages/OpenData.aspx"},
         {"name": "وزارة الموارد البشرية والتنمية الاجتماعية", "desc": "مؤشرات سوق العمل، نسب التوطين، برامج الدعم وتراخيص الكوادر", "url": "https://hrsd.gov.sa/ar/open-data"},
-        {"name": "منصة استطلع (Istitlaa)", "desc": "المنصة الموحدة لاستطلاع آراء العموم والمستثمرين في اللوائح والأنظمة الحكومية", "url": "https://istitlaa.ncc.gov.sa/ar"},
+        {"name": "منصة استطلاع (Istitlaa)", "desc": "المنصة الموحدة لاستطلاع آراء العموم والمستثمرين في اللوائح والأنظمة الحكومية", "url": "https://istitlaa.ncc.gov.sa/ar"},
         {"name": "منصة اعتماد (Etimad)", "desc": "بوابة المنافسات والمشتريات الحكومية والفرص التشغيلية للمشاريع", "url": "https://login.etimad.sa/account/login"},
         {"name": "الهيئة العامة للموانئ (موانئ)", "desc": "إحصائيات حركة الحاويات، السفن، والخدمات الملاحية واللوجستية في الموانئ", "url": "https://mawani.gov.sa/ar-sa/pages/opendata.aspx"},
         {"name": "الهيئة العامة للطيران المدني (GACA)", "desc": "حركة الشحن الجوي، المطارات، وتراخيص الناقلات والخدمات الجوية", "url": "https://gaca.gov.sa/web/ar-sa/page/open-data"},
