@@ -226,3 +226,12 @@ with tab5:
             prompt = f"قم بصياغة جدول ماركداون يحتوي على: (التحدي الميداني المحتمل، مستوى الخطورة، المحفز الحكومي المتاح في السعودية، والتوصية الاستباقية) للقطاع التالي: {search_query}"
             ai_res = ask_ai(prompt)
             st.markdown(ai_res)
+<style>
+    .sidebar, #sidebar, .ai-sidebar, [data-testid="stSidebar"] {
+        display: none !important;
+    }
+    .main-content, main {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+</style>
