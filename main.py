@@ -8,9 +8,14 @@ import requests
 # 1. إعدادات الصفحة الرئيسية
 st.set_page_config(page_title="المرصد الشامل لبيئة الأعمال", page_icon="📡", layout="wide")
 
-# 2. ضبط التنسيق والمحاذاة الشاملة ومنع انقلاب النصوص
+# 2. ضبط التنسيق والمحاذاة الشاملة وإخفاء الشريط الجانبي
 st.markdown("""
     <style>
+    /* إخفاء الشريط الجانبي وزر التحكم نهائياً */
+    [data-testid="stSidebar"], [data-testid="collapsedControl"] {
+        display: none !important;
+    }
+    
     /* محاذاة التطبيق لليمين */
     .stApp {
         direction: rtl;
@@ -58,20 +63,13 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. إعدادات الشريط الجانبي ومفتاح الذكاء الاصطناعي
-st.sidebar.title("⚙️ إعدادات النظام")
-user_api_key = st.sidebar.text_input(
-    "ضع مفتاح Gemini API الخاص بك هنا:", 
-    type="password", 
-    help="أدخل المفتاح الذي استخرجته من Google AI Studio لتفعيل التحليلات المباشرة."
-)
-
-api_key = user_api_key.strip()
+# 3. دالة الاتصال بالذكاء الاصطناعي (يمكن وضع المفتاح هنا مباشرة أو عبر st.secrets)
+api_key = "" # يمكنك وضع مفتاح Gemini API الخاص بك بين التنصيص هنا مباشرة
 
 def ask_ai(prompt):
-    """دالة الاتصال بالذكاء الاصطناعي عبر المفتاح المدخل"""
+    """دالة الاتصال بالذكاء الاصطناعي عبر المفتاح"""
     if not api_key:
-        return "⚠️ يرجى إدخال مفتاح Gemini API الخاص بك في القائمة الجانبية (⚙️ إعدادات النظام) لتفعيل تحليلات الذكاء الاصطناعي."
+        return "⚠️ يرجى تزويد الكود بمفتاح Gemini API لتفعيل تحليلات الذكاء الاصطناعي."
     
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
     headers = {'Content-Type': 'application/json'}
@@ -192,7 +190,7 @@ with tab2:
 with tab3:
     st.subheader("📊 تحليل القوائم المالية والاتجاهات الاستثمارية بالذكاء الاصطناعي")
     if not api_key:
-        st.info("⚠️ فضلاً ضع مفتاح Gemini API في الخانة الجانبية لتنشيط التقرير المالي.")
+        st.info("⚠️ ضع مفتاح Gemini API في الكود لتنشيط التقرير المالي.")
     else:
         with st.spinner("جاري الاتصال بالذكاء الاصطناعي لتوليد تحليل القوائم المالية..."):
             prompt = f"قدم تحليلاً استباقياً للقوائم المالية والإفصاحات لقطاع '{search_query}' في السعودية للشركات الأجنبية، واذكر أهم 3 مخاطر مالية وتأثيرها على رأس المال."
@@ -209,7 +207,7 @@ with tab4:
     st.write("---")
     
     if not api_key:
-        st.info("⚠️ فضلاً ضع مفتاح Gemini API في الخانة الجانبية لتنشيط استقراء اللوائح والمرئيات.")
+        st.info("⚠️ ضع مفتاح Gemini API في الكود لتنشيط استقراء اللوائح والمرئيات.")
     else:
         with st.spinner("جاري استقراء لوائح منصة استطلاع والأنظمة والمرئيات..."):
             prompt = f"بصفتك خبيراً تنظيماً، استقرئ التحديات التنظيمية واللوائح الحكومية المطروحة في منصة استطلاع بالسعودية المتعلقة بقطاع '{search_query}' والآراء المتوقعة للمستثمرين الأجانب."
@@ -220,18 +218,9 @@ with tab4:
 with tab5:
     st.subheader("💡 مصفوفة التحديات المحتملة والمحفزات الحكومية المقابلة")
     if not api_key:
-        st.info("⚠️ فضلاً ضع مفتاح Gemini API في الخانة الجانبية لتنشيط مصفوفة التحديات المحتملة.")
+        st.info("⚠️ ضع مفتاح Gemini API في الكود لتنشيط مصفوفة التحديات المحتملة.")
     else:
         with st.spinner("جاري صياغة مصفوفة التحديات المحتملة والحلول..."):
             prompt = f"قم بصياغة جدول ماركداون يحتوي على: (التحدي الميداني المحتمل، مستوى الخطورة، المحفز الحكومي المتاح في السعودية، والتوصية الاستباقية) للقطاع التالي: {search_query}"
             ai_res = ask_ai(prompt)
             st.markdown(ai_res)
-<style>
-    .sidebar, #sidebar, .ai-sidebar, [data-testid="stSidebar"] {
-        display: none !important;
-    }
-    .main-content, main {
-        width: 100% !important;
-        margin: 0 !important;
-    }
-</style>
